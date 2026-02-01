@@ -152,7 +152,7 @@ export default function Home() {
       {data && <div className="progress-bar" style={{ width: `${progress}%` }} />}
 
       <main className="min-h-screen safe-top">
-        <div className="max-w-2xl mx-auto px-4 py-5 pb-24">
+        <div className="max-w-2xl mx-auto px-4 py-5 pb-10">
 
           {/* Header */}
           <header className="card p-4 mb-5">
@@ -236,7 +236,7 @@ export default function Home() {
 
         {/* Sticky Bottom Navigation - Mobile Friendly */}
         {!loading && data && (
-          <div className="nav-sticky safe-bottom bg-[--color-surface] border-t border-[--color-border] p-4">
+          <div className="w-full mt-8 safe-bottom bg-[--color-surface] border-t border-[--color-border] p-4">
             <div className="max-w-2xl mx-auto flex justify-between items-center gap-4">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
