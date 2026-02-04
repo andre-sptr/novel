@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 
@@ -9,19 +9,31 @@ const lora = Lora({
   weight: ['400', '500', '600', '700']
 });
 
-export const metadata: Metadata = {
-  title: "Private Reader",
-  description: "Clean reader without ads",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#FFFDF8' },
     { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
   ],
+};
+
+export const metadata: Metadata = {
+  title: "Private Reader",
+  description: "Clean reader without ads",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon.ico', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

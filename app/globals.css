@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@variant dark (&:where(.dark, .dark *));
 
 :root {
   --color-bg: #FFFDF8;
@@ -20,8 +21,8 @@
   --color-text: #e8e6e3;
   --color-text-secondary: #a8a8a8;
   --color-text-muted: #6a6a6a;
-  --color-accent: #c9a77c;
-  --color-accent-hover: #dbb992;
+  --color-accent: #A08665;
+  --color-accent-hover: #b39674;
   --color-border: #2a2a2a;
   --color-border-light: #222222;
 }
@@ -249,6 +250,22 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Safe Area for notch devices */

@@ -25,12 +25,19 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
 
   useEffect(() => {
+    // Restore previous state
     const logged = localStorage.getItem('reader_logged') === 'true';
     const dark = localStorage.getItem('reader_dark') === 'true';
+    const lastUrl = localStorage.getItem('last_read_url');
+    const savedHistory = localStorage.getItem('reader_history');
+
     setIsLoggedIn(logged);
     setDarkMode(dark);
+    if (lastUrl) setUrl(lastUrl);
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
     if (dark) document.documentElement.classList.add('dark');
   }, []);
 
@@ -72,7 +79,7 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [data]);
 
-  const fetchChapter = useCallback(async (targetUrl: string) => {
+  const fetchChapter = useCallback(async (targetUrl: string, addToHistory = true) => {
     setLoading(true);
     setError(null);
 
@@ -86,13 +93,24 @@ export default function Home() {
         setData(json);
         setProgress(0);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Save current state
+        setUrl(targetUrl);
+        localStorage.setItem('last_read_url', targetUrl);
+
+        // Update history
+        if (addToHistory && data?.currentUrl) {
+          const newHistory = [...history, data.currentUrl];
+          setHistory(newHistory);
+          localStorage.setItem('reader_history', JSON.stringify(newHistory));
+        }
       }
     } catch {
       setError('Gagal memuat. Periksa koneksi internet.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [data, history]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +122,21 @@ export default function Home() {
       setData(null);
       setUrl(data.nextUrl);
       fetchChapter(data.nextUrl);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (history.length > 0) {
+      const newHistory = [...history];
+      const previousUrl = newHistory.pop();
+      setHistory(newHistory);
+      localStorage.setItem('reader_history', JSON.stringify(newHistory));
+
+      if (previousUrl) {
+        setData(null);
+        setUrl(previousUrl);
+        fetchChapter(previousUrl, false);
+      }
     }
   };
 
@@ -152,7 +185,7 @@ export default function Home() {
       {data && <div className="progress-bar" style={{ width: `${progress}%` }} />}
 
       <main className="min-h-screen safe-top">
-        <div className="max-w-2xl mx-auto px-4 py-5 pb-10">
+        <div className="max-w-2xl mx-auto px-4 py-5 pb-32">
 
           {/* Header */}
           <header className="card p-4 mb-5">
@@ -234,23 +267,46 @@ export default function Home() {
 
         </div>
 
-        {/* Sticky Bottom Navigation - Mobile Friendly */}
+        {/* Floating Action Bar */}
         {!loading && data && (
-          <div className="w-full mt-8 safe-bottom bg-[--color-surface] border-t border-[--color-border] p-4">
-            <div className="max-w-2xl mx-auto flex justify-between items-center gap-4">
+          <div className="fixed bottom-4 inset-x-0 z-50 pointer-events-none px-4 safe-bottom">
+            <div className="max-w-md mx-auto flex items-center justify-between gap-2 p-1.5 rounded-full bg-[--color-surface] backdrop-blur-xl shadow-xl border border-[--color-border] pointer-events-auto transition-all duration-300 animate-slide-up ring-1 ring-black/5 dark:ring-white/10">
+
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="btn btn-ghost flex-1"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[--color-bg] text-[--color-text] hover:bg-[--color-surface] active:scale-95 transition-all shadow-sm border border-[--color-border]"
+                aria-label="Kembali ke Atas"
               >
-                ↑ Atas
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5" /><path d="M5 12l7-7 7 7" /></svg>
               </button>
 
+              {history.length > 0 && (
+                <button
+                  onClick={handlePrevious}
+                  className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-full bg-[--color-bg] text-[--color-text] hover:bg-[--color-surface] active:scale-95 transition-all shadow-sm border border-[--color-border] group"
+                  aria-label="Chapter Sebelumnya"
+                >
+                  <div className="bg-[--color-accent]/10 rounded-full p-0.5 group-hover:-translate-x-1 transition-transform">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+                  </div>
+                  <span className="text-xs font-medium">Prev</span>
+                </button>
+              )}
+
               {data.nextUrl ? (
-                <button onClick={handleNext} className="btn btn-primary flex-1">
-                  Lanjut →
+                <button
+                  onClick={handleNext}
+                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-full bg-[--color-accent] light:text-black dark:text-white font-semibold text-sm hover:bg-[--color-accent-hover] active:scale-95 transition-all shadow-md group pr-1 pl-3"
+                >
+                  <span>Lanjut Chapter</span>
+                  <div className="bg-black/10 dark:bg-white/20 rounded-full p-0.5 group-hover:translate-x-1 transition-transform">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+                  </div>
                 </button>
               ) : (
-                <span className="flex-1 text-center text-sm text-[--color-text-muted] italic">Akhir Chapter</span>
+                <span className="flex-1 text-center h-10 flex items-center justify-center text-sm font-medium text-[--color-text-muted] italic">
+                  Sampai Jumpa
+                </span>
               )}
             </div>
           </div>
