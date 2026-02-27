@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { JSDOM } from 'jsdom';
 import { translate } from 'google-translate-api-x';
 
-const SCRAPER_API_KEY = '4e54033b64dc75d1c757e8aaba8ce6ed'; 
+const SCRAPE_DO_TOKEN = process.env.SCRAPE_DO_TOKEN || '808b6b6cc31d41ebb9e62ab0d9afbb1bec0b5b66f35';
 
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 60 * 60 * 1000;
@@ -24,20 +24,20 @@ function setCacheData(key: string, data: any) {
     cache.set(key, { data, timestamp: Date.now() });
 }
 
-async function fetchWithScraperApi(targetUrl: string): Promise<string> {
-    if (!SCRAPER_API_KEY || SCRAPER_API_KEY.includes('MASUKKAN')) {
-        throw new Error('API Key ScraperAPI belum diisi.');
+async function fetchWithScrapeDo(targetUrl: string): Promise<string> {
+    if (!SCRAPE_DO_TOKEN) {
+        throw new Error('Token Scrape.do belum diisi.');
     }
 
-    console.log(`[ScraperAPI] Mengambil: ${targetUrl}`);
+    console.log(`[Scrape.do] Mengambil: ${targetUrl}`);
 
-    const proxyUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true`;
+    const proxyUrl = `http://api.scrape.do/?token=${SCRAPE_DO_TOKEN}&url=${encodeURIComponent(targetUrl)}&render=true`;
 
     const response = await fetch(proxyUrl);
     if (!response.ok) {
-        throw new Error(`ScraperAPI Error: ${response.status} ${response.statusText}`);
+        throw new Error(`Scrape.do Error: ${response.status} ${response.statusText}`);
     }
-    
+
     return await response.text();
 }
 
@@ -51,13 +51,13 @@ export async function GET(request: Request) {
     if (cachedResult) return NextResponse.json(cachedResult);
 
     try {
-        const html = await fetchWithScraperApi(targetUrl);
-        
+        const html = await fetchWithScrapeDo(targetUrl);
+
         const dom = new JSDOM(html, { url: targetUrl });
         const doc = dom.window.document;
 
         let contentElement = doc.querySelector('#chr-content, .chr-content, #chapter-content');
-        
+
         if (!contentElement) {
             const divs = doc.querySelectorAll('div');
             let maxP = 0;
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
 
         const result = {
             title: translatedTitle,
-            content: contentDoc.body.innerHTML, 
+            content: contentDoc.body.innerHTML,
             nextUrl: nextUrl,
             currentUrl: targetUrl,
             isTranslated: true
@@ -166,7 +166,7 @@ async function translateParagraphs(texts: string[], elements: HTMLParagraphEleme
                 results.forEach((res: any, idx: number) => {
                     if (elements[startIdx + idx]) elements[startIdx + idx].textContent = res.text;
                 });
-            } catch (err) {}
+            } catch (err) { }
         }));
     }
 }
