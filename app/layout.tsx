@@ -15,8 +15,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFFDF8' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
+    { media: '(prefers-color-scheme: light)', color: '#fdfbf7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
   ],
 };
 
@@ -43,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${lora.variable} antialiased bg-[#F5F5F4]`}>
+      <body className={`${inter.variable} ${lora.variable} antialiased`}>
         {children}
       </body>
     </html>
